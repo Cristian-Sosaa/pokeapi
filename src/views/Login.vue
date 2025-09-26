@@ -75,13 +75,11 @@
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue'
+import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { Loader2 } from 'lucide-vue-next'
-import { useAuthStore } from '../stores/auth'
 
 const router = useRouter()
-const authStore = useAuthStore()
 
 const form = ref({
   email: '',
@@ -91,14 +89,30 @@ const form = ref({
 const loading = ref(false)
 const error = ref('')
 
+// ✅ Simulación de login (aquí normalmente llamas a tu API)
+const fakeLogin = async (email: string, password: string) => {
+  if (email === 'test@pokeapp.com' && password === '123456') {
+    return {
+      success: true,
+      user: { id: 1, name: 'Ash Ketchum', email },
+      token: 'FAKE-TOKEN-12345'
+    }
+  }
+  return { success: false, error: 'Credenciales inválidas' }
+}
+
 const handleLogin = async () => {
   loading.value = true
   error.value = ''
   
   try {
-    const result = await authStore.login(form.value.email, form.value.password)
+    const result = await fakeLogin(form.value.email, form.value.password)
     
     if (result.success) {
+      // ✅ Guardar en Local Storage
+      localStorage.setItem('user', JSON.stringify(result.user))
+      localStorage.setItem('token', result.token)
+
       router.push('/')
     } else {
       error.value = result.error || 'Error al iniciar sesión'
@@ -109,4 +123,14 @@ const handleLogin = async () => {
     loading.value = false
   }
 }
+
+// ✅ Si ya hay sesión, redirigir automáticamente
+onMounted(() => {
+  const storedUser = localStorage.getItem('user')
+  const storedToken = localStorage.getItem('token')
+
+  if (storedUser && storedToken) {
+    router.push('/')
+  }
+})
 </script>

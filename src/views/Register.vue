@@ -112,10 +112,8 @@
 import { ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { Loader2 } from 'lucide-vue-next'
-import { useAuthStore } from '../stores/auth'
 
 const router = useRouter()
-const authStore = useAuthStore()
 
 const form = ref({
   username: '',
@@ -127,6 +125,15 @@ const form = ref({
 const loading = ref(false)
 const error = ref('')
 const success = ref('')
+
+// ✅ Simulación de registro (puedes reemplazar con tu API real)
+const fakeRegister = async (username: string, email: string, password: string) => {
+  return {
+    success: true,
+    user: { id: Date.now(), username, email },
+    token: 'FAKE-TOKEN-' + Math.random().toString(36).substring(2, 12)
+  }
+}
 
 const handleRegister = async () => {
   loading.value = true
@@ -147,13 +154,17 @@ const handleRegister = async () => {
   }
   
   try {
-    const result = await authStore.register(
+    const result = await fakeRegister(
       form.value.username,
       form.value.email,
       form.value.password
     )
     
     if (result.success) {
+      // ✅ Guardar en Local Storage
+      localStorage.setItem('user', JSON.stringify(result.user))
+      localStorage.setItem('token', result.token)
+
       success.value = 'Cuenta creada exitosamente. Redirigiendo...'
       setTimeout(() => {
         router.push('/')
